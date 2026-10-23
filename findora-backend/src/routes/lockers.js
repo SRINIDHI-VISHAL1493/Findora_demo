@@ -12,10 +12,14 @@ const LOCKER_STATES = ['AVAILABLE', 'RESERVED', 'ITEM_DEPOSITED', 'READY_FOR_COL
 // GET /api/lockers - List all lockers
 router.get('/', authenticate, (req, res) => {
   const lockers = store.getAllLockers();
-  const enriched = lockers.map(l => ({
-    ...l,
-    session: l.sessionId ? store.getLockerSession(l.sessionId) : null,
-  }));
+  const enriched = lockers.map(l => {
+    const session = l.sessionId ? store.getLockerSession(l.sessionId) : null;
+    // Only expose OTP to the exact claimer — everyone else sees ******
+    const maskedSession = session
+      ? { ...session, otp: session.claimedBy === req.user.uid ? session.otp : '******' }
+      : null;
+    return { ...l, session: maskedSession };
+  });
   res.json({ lockers: enriched });
 });
 
@@ -23,7 +27,11 @@ router.get('/', authenticate, (req, res) => {
 router.get('/:id', authenticate, (req, res) => {
   const locker = store.getLocker(req.params.id);
   if (!locker) return res.status(404).json({ error: 'Locker not found' });
-  res.json({ ...locker, session: locker.sessionId ? store.getLockerSession(locker.sessionId) : null });
+  const session = locker.sessionId ? store.getLockerSession(locker.sessionId) : null;
+  const maskedSession = session
+    ? { ...session, otp: session.claimedBy === req.user.uid ? session.otp : '******' }
+    : null;
+  res.json({ ...locker, session: maskedSession });
 });
 
 // POST /api/lockers/assign - Assign a locker for a match

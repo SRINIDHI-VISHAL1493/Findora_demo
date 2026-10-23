@@ -43,6 +43,7 @@ app.use('/api/rewards', require('./routes/rewards'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/iot', require('./routes/iot'));
 app.use('/api/v1/box', require('./routes/box'));
+app.use('/api/demo', require('./routes/demo'));
 
 // ─── Root & Health Check ───────────────────────────────────────
 app.get('/', (req, res) => {

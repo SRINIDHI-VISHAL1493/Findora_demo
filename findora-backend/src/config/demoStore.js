@@ -178,10 +178,10 @@ const demoMatches = {
     id: 'match-001',
     lostReportId: 'report-001',
     foundReportId: 'report-002',
-    lostUserId: 'demo-user-1',
-    foundUserId: 'demo-user-2',
+    lostUserId: 'demo-user-2',   // Bob lost the iPhone → Bob is the claimer (collects with OTP)
+    foundUserId: 'demo-user-1',  // Alice found it → Alice is the depositor (inserts into locker)
     confidence: 91,
-    status: 'pending', // pending | accepted | rejected | verified | completed
+    status: 'pending',
     reasons: [
       { factor: 'category', score: 10, label: 'Same category (Electronics)' },
       { factor: 'brand', score: 10, label: 'Same brand (Apple)' },
@@ -212,10 +212,10 @@ const demoLockers = {
     id: 'locker-002',
     name: 'Locker A2',
     location: 'Main Building - Ground Floor',
-    state: 'ITEM_DEPOSITED',
+    state: 'AVAILABLE',
     ip: '192.168.1.102',
     lastHeartbeat: new Date(now - 1 * 60000).toISOString(),
-    sessionId: 'session-001',
+    sessionId: null,
     firmwareVersion: '1.2.0',
   },
   'locker-003': {
@@ -240,22 +240,8 @@ const demoLockers = {
   },
 };
 
-const demoLockerSessions = {
-  'session-001': {
-    id: 'session-001',
-    lockerId: 'locker-002',
-    matchId: 'match-001',
-    reportId: 'report-002',
-    depositedBy: 'demo-user-1',
-    claimedBy: 'demo-user-2',
-    otp: '847291',
-    otpExpiry: new Date(now + 10 * 60000).toISOString(),
-    otpAttempts: 0,
-    state: 'ITEM_DEPOSITED',
-    createdAt: new Date(now - 3 * H).toISOString(),
-    updatedAt: new Date(now - 1 * H).toISOString(),
-  },
-};
+// No pre-seeded sessions — start clean so users can go through the full flow
+const demoLockerSessions = {};
 
 const demoNotifications = {};
 const demoChats = {};
