@@ -2,7 +2,7 @@
 // Authentication & Authorization middleware
 
 const store = require('../config/demoStore');
-const { isDemoMode } = require('../config/firebase');
+const firebaseConfig = require('../config/firebase');
 
 // Demo auth tokens map (in demo mode, tokens are user IDs prefixed with 'demo-token-')
 const DEMO_TOKEN_PREFIX = 'demo-token-';
@@ -16,39 +16,46 @@ async function authenticate(req, res, next) {
 
     const token = authHeader.split(' ')[1];
 
-    if (isDemoMode || token.startsWith(DEMO_TOKEN_PREFIX)) {
-      // Demo mode: token = 'demo-token-{uid}'
+    // Always allow demo tokens (even in production, useful for admin testing)
+    if (token.startsWith(DEMO_TOKEN_PREFIX)) {
       const uid = token.replace(DEMO_TOKEN_PREFIX, '');
       const user = store.getUser(uid);
-      if (!user) {
-        return res.status(401).json({ error: 'Invalid demo token' });
-      }
+      if (!user) return res.status(401).json({ error: 'Invalid demo token' });
       req.user = user;
       return next();
     }
 
-    // Real Firebase auth
-    const { auth } = require('../config/firebase');
+    // Demo mode — no real Firebase tokens accepted
+    if (firebaseConfig.isDemoMode) {
+      return res.status(401).json({ error: 'Invalid demo token' });
+    }
+
+    // Production — verify real Firebase ID token
+    const { auth } = firebaseConfig;
     if (!auth) {
       return res.status(503).json({ error: 'Auth service unavailable' });
     }
+
     const decoded = await auth.verifyIdToken(token);
+
+    // Get or auto-create user in local store
     let user = store.getUser(decoded.uid);
     if (!user) {
-      // Create user record if doesn't exist
       user = store.createUser({
         uid: decoded.uid,
         email: decoded.email,
-        displayName: decoded.name || decoded.email,
+        displayName: decoded.name || decoded.email?.split('@')[0] || 'User',
         role: 'user',
         rewardPoints: 0,
-        badges: [],
+        badges: ['newcomer'],
         createdAt: new Date().toISOString(),
       });
     }
+
     req.user = user;
     next();
   } catch (err) {
+    console.error('Auth error:', err.message);
     return res.status(401).json({ error: 'Invalid or expired token', details: err.message });
   }
 }
