@@ -1,443 +1,328 @@
-# 🔍 Findora - AI-Powered Smart Lost & Found Ecosystem
+# 🔍 Findora — AI-Powered Smart Lost & Found Ecosystem
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-[![React](https://img.shields.io/badge/React-19.0-61dafb.svg)](https://reactjs.org/)
-[![Express](https://img.shields.io/badge/Express-5.0-000000.svg)](https://expressjs.com/)
+[![React](https://img.shields.io/badge/React-19-61dafb.svg)](https://reactjs.org/)
+[![Express](https://img.shields.io/badge/Express-5-000000.svg)](https://expressjs.com/)
+[![ESP32](https://img.shields.io/badge/ESP32-PlatformIO-orange.svg)](https://platformio.org/)
+[![Status](https://img.shields.io/badge/Status-Production_Ready-success.svg)]()
 
-**Findora** is a comprehensive, full-stack lost and found management platform that leverages AI-powered matching, IoT smart lockers, and gamification to revolutionize how institutions handle lost items.
-
-![Findora Dashboard](https://img.shields.io/badge/Status-Production_Ready-success)
+**Findora** is a full-stack lost and found platform with AI-powered item matching, ESP32 smart lockers, Telegram OTP delivery, fraud detection, gamification, and a comprehensive admin dashboard.
 
 ---
 
-## 🌟 Key Features
+## 🌟 Features
 
-### 🤖 AI-Powered Matching Engine
-- **91% Match Accuracy** using multi-algorithm approach
-- TF-IDF text similarity for descriptions
-- Jaccard similarity for keywords
-- Haversine distance for location matching
-- Color family intelligent grouping
-- Automatic matching on report submission
+### 🤖 AI Matching Engine
+- **91% match accuracy** — TF-IDF text similarity, Jaccard keywords, Haversine geolocation, color families
+- Auto-runs on every new report submission
+- Confidence scoring with per-factor breakdown
 
-### 🔐 Smart Locker Integration (ESP32)
-- Real-time MQTT communication
-- OTP-based secure access
-- Heartbeat monitoring & offline detection
-- Remote lock/unlock control
-- Session management with audit trails
-- Hardware simulator for testing
+### 🔐 Smart Locker System
+- **Per-user OTP** — only the rightful claimer ever sees their code
+- Full session lifecycle: Assign → Insert → Deposit → Generate OTP → Verify → Collect
+- ESP32 firmware with 4×4 keypad + I2C LCD via PlatformIO
+- Dual-port server: port 3001 (web app) + port 8000 (ESP32 HTTP)
+- MQTT bridge for real-time locker state sync
+- Software simulator for hardware-free testing
 
-### 🛡️ Advanced Fraud Detection
-- **4 Detection Algorithms**:
-  - Duplicate report detection
-  - Rapid submission spam detection
-  - Location anomaly detection
-  - Pattern analysis
-- Risk scoring (0-100) with auto-flagging
-- Real-time fraud assessment on submission
+### 📱 Telegram OTP Bot
+- Send `/otp` to **[@smartLostandFoundbot](https://t.me/smartLostandFoundbot)** to receive your locker code
+- Auto-register new OTPs when sessions are created
+- Native Node.js bot — no Python or extra process needed
 
-### 🎮 Gamification & Rewards
-- **10 Achievement Badges** (Finder, Hero, Legend, etc.)
-- Points system (10-50 per action)
+### 🛡️ Fraud Detection
+- 4 algorithms: duplicate reports, rapid submission, location anomaly, pattern analysis
+- Risk score 0–100, auto-flags above 80
+- Runs automatically on every report creation
+
+### 🎮 Rewards & Gamification
+- Points awarded per action (10–50 pts)
+- 10 achievement badges (Finder, Hero, Legend…)
 - Global leaderboard with rankings
-- Milestone unlocks and rewards
-- Transaction history tracking
+- Milestones and transaction history
 
-### 📊 Comprehensive Admin Dashboard
-- Real-time analytics and trends
-- Case management with bulk operations
-- Fraud monitoring and alerts
-- User engagement metrics
-- Geographic distribution maps
-- Time-of-day activity patterns
+### 📊 Admin Dashboard
+- Real-time analytics: trends, categories, geography, timing, brands
+- Case management with bulk flag/archive/delete
+- Fraud monitoring and manual scan
+- User management with role control
+- Full audit log
 
-### 💬 Real-time Communication
-- Secure chat between finders and losers
-- Match-based conversation threads
-- Message notifications
-- Privacy-focused design
+### 💬 Chat
+- Per-match secure messaging between finder and owner
+- Notifications for new messages
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Project Structure
 
-### Tech Stack
-
-**Frontend**
-- React 19 with Vite 8
-- Tailwind CSS 4
-- React Router v7
-- Axios for API calls
-- Chart.js for analytics
-
-**Backend**
-- Node.js with Express 5
-- Firebase Authentication (with demo mode)
-- In-memory data store (demo) / Firebase Firestore (production)
-- MQTT for IoT communication
-- Rate limiting & security middleware
-
-**IoT**
-- ESP32 microcontroller
-- PlatformIO firmware
-- MQTT protocol
-- OTP verification system
-
-**AI/ML**
-- Natural Language Processing (TF-IDF)
-- Geospatial algorithms (Haversine)
-- Pattern recognition
-- Cosine similarity scoring
+```
+FINDORA/
+├── findora-backend/           # Node.js + Express 5 API
+│   ├── src/
+│   │   ├── config/
+│   │   │   ├── demoStore.js   # In-memory store (demo mode)
+│   │   │   └── firebase.js    # Firebase admin (production)
+│   │   ├── middleware/
+│   │   │   └── auth.js        # JWT + demo token auth, RBAC
+│   │   ├── routes/
+│   │   │   ├── auth.js        # Login, profile, Telegram link
+│   │   │   ├── reports.js     # CRUD + AI match trigger
+│   │   │   ├── matches.js     # Accept, reject, verify
+│   │   │   ├── lockers.js     # Full session lifecycle + OTP
+│   │   │   ├── chat.js        # Messaging
+│   │   │   ├── notifications.js
+│   │   │   ├── rewards.js     # Points, badges, leaderboard
+│   │   │   ├── admin.js       # Dashboard, fraud, analytics
+│   │   │   ├── iot.js         # MQTT-based ESP32 routes
+│   │   │   ├── box.js         # Direct HTTP ESP32 endpoint (port 8000)
+│   │   │   └── demo.js        # POST /api/demo/reset
+│   │   └── services/
+│   │       ├── aiMatcher.js   # TF-IDF, Jaccard, Haversine
+│   │       ├── fraudDetection.js
+│   │       ├── rewardsSystem.js
+│   │       ├── analytics.js
+│   │       ├── otpService.js  # Crypto OTP, rate limiting
+│   │       ├── mqttBridge.js  # ESP32 ↔ backend MQTT
+│   │       └── telegramService.js
+│   ├── locker-simulator.js    # Software locker simulator
+│   └── test-all-endpoints.js  # API test suite (19 tests)
+│
+├── findora-frontend/          # React 19 + Vite 8
+│   └── src/
+│       ├── components/ui/     # Button, Card, Input, Modal, Select…
+│       ├── context/           # AuthContext
+│       ├── lib/
+│       │   ├── api.js         # Axios client for all endpoints
+│       │   └── utils.js
+│       └── pages/
+│           ├── auth/          # LoginPage
+│           ├── dashboard/     # Home, Reports, Matches, Lockers,
+│           │                  # Chat, Rewards, Profile, LockerSession
+│           └── admin/         # AdminDashboard, EnhancedDashboard,
+│                              # CaseManagement
+│
+├── esp32-locker/              # PlatformIO firmware
+│   ├── src/main.cpp           # Keypad + LCD + HTTP OTP verify
+│   └── platformio.ini
+│
+└── telegram_otp_bot/          # Python bot (legacy — native bot preferred)
+    ├── bot.py
+    └── requirements.txt
+```
 
 ---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ and npm
-- Git
-- (Optional) ESP32 hardware for physical lockers
-- (Optional) Firebase project for production
+- Node.js 18+
+- npm
 
-### 1. Clone the Repository
+### 1. Clone
 ```bash
-git clone https://github.com/SRINIDHI-VISHAL1493/Smart-Lock-Found-Ecosystem.git
-cd Smart-Lock-Found-Ecosystem
+git clone https://github.com/SAICHARAN1189/FINDORA.git
+cd FINDORA
 ```
 
-### 2. Backend Setup
+### 2. Backend
 ```bash
 cd findora-backend
 npm install
-
-# Copy environment template
-cp .env.example .env
-
-# Start backend (runs on port 3001)
+cp .env.example .env      # demo mode works out of the box
 npm start
 ```
 
-The backend will start in **demo mode** by default (no Firebase required).
+Starts on **port 3001** (web API) and **port 8000** (ESP32 hardware endpoint).
 
-### 3. Frontend Setup
+### 3. Frontend
 ```bash
 cd ../findora-frontend
 npm install
-
-# Start frontend (runs on port 5173)
 npm run dev
 ```
 
-### 4. Access the Application
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:3001
-- **Health Check**: http://localhost:3001/api/health
+Starts on **http://localhost:5173**.
 
-### 5. Demo Login
-Use these demo accounts:
-
-| Role | Username | Token |
-|------|----------|-------|
-| User | demo-user-1 | `demo-token-demo-user-1` |
-| Admin | demo-admin-1 | `demo-token-demo-admin-1` |
-| Police | demo-police-1 | `demo-token-demo-police-1` |
+### 4. Open the app
+| Service | URL |
+|---------|-----|
+| Web App | http://localhost:5173 |
+| API | http://localhost:3001 |
+| Health | http://localhost:3001/api/health |
+| ESP32 endpoint | http://localhost:8000/api/v1/box/verify-otp |
 
 ---
 
-## 📱 ESP32 Smart Locker Setup
+## 🔑 Demo Accounts
 
-### Hardware Requirements
-- ESP32 DevKit
-- Servo motor (door lock)
-- LED indicators (red/green/blue)
-- Buzzer (optional)
-- 5V power supply
+| Role | Login ID | Token |
+|------|----------|-------|
+| Alice — finder (inserts items) | `demo-user-1` | `demo-token-demo-user-1` |
+| Bob — owner (collects with OTP) | `demo-user-2` | `demo-token-demo-user-2` |
+| Admin | `demo-admin-1` | `demo-token-demo-admin-1` |
+| Police | `demo-police-1` | `demo-token-demo-police-1` |
 
-### Firmware Installation
+---
+
+## 🔒 Locker Flow (step by step)
+
+The locker system enforces strict per-user OTP privacy — no one sees another user's code.
+
+```
+1. Alice (finder) → Lockers → Insert Item → pick a match → locker reserved
+2. Alice → View Full Session → "I've Deposited the Item" → state: ITEM_DEPOSITED
+3. Bob (owner) → Lockers → Your Active Sessions → Generate OTP → 6-digit code appears
+4. Bob → View Full Session → enter OTP → locker unlocks → item collected ✅
+5. Anyone → click "Reset Demo" button to run the flow again
+```
+
+**Security rules enforced:**
+- OTP is masked as `******` for everyone except the exact `claimedBy` user
+- Only the finder (`depositedBy`) can mark an item as deposited
+- Only the claimer (`claimedBy`) can generate or verify an OTP
+- Rate limited: 5 wrong OTP attempts → 15-minute lockout
+
+---
+
+## 📡 API Reference
+
+### Authentication
+```
+Authorization: Bearer <token>
+```
+
+### Core endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/auth/demo-login` | Login with demo user ID |
+| GET | `/api/reports` | List reports (paginated) |
+| POST | `/api/reports` | Create report + auto AI match + fraud scan |
+| GET | `/api/matches` | Get matches for current user |
+| POST | `/api/matches/:id/accept` | Accept a match |
+| GET | `/api/lockers` | All lockers (OTP masked per user) |
+| POST | `/api/lockers/assign` | Assign locker to a match |
+| POST | `/api/lockers/sessions/:id/deposit` | Confirm item deposited |
+| POST | `/api/lockers/sessions/:id/resend-otp` | Generate / refresh OTP |
+| POST | `/api/lockers/sessions/:id/verify-otp` | Verify OTP → unlock |
+| GET | `/api/rewards/profile` | Points, badges, rank |
+| GET | `/api/rewards/leaderboard` | Global leaderboard |
+| POST | `/api/demo/reset` | Reset all sessions + lockers for re-testing |
+| GET | `/api/admin/dashboard` | Full dashboard (admin only) |
+| GET | `/api/admin/fraud/stats` | Fraud statistics (admin only) |
+| POST | `/api/v1/box/verify-otp` | ESP32 hardware OTP check (no auth) |
+
+---
+
+## 🔧 ESP32 Hardware Setup
+
+### Components
+- ESP32 DevKit v1
+- 4×4 matrix keypad
+- I2C 16×2 LCD display
+- 5V relay (door solenoid)
+
+### Flash firmware
 ```bash
 cd esp32-locker
-
-# Install PlatformIO
 pip install platformio
-
-# Build and upload
 pio run --target upload
-
-# Monitor serial output
 pio device monitor
 ```
 
-### Software Simulator (No Hardware Required)
-```bash
-cd findora-backend
-node locker-simulator.js locker-001 "Main Building"
+Update `SERVER_IP` in `main.cpp` to your machine's local IP (shown at backend startup).
+
+### Drivers
+- Windows: use `CP210x_Universal_Windows_Driver.zip` (included)
+- macOS/Linux: driver built-in
+
+See [ESP32_SETUP.md](./ESP32_SETUP.md) for full wiring diagram and config.
+
+---
+
+## 🤖 Telegram Bot
+
+The native Node.js Telegram bot starts automatically with the backend if `TELEGRAM_BOT_TOKEN` is set in `.env`.
+
+```env
+TELEGRAM_BOT_TOKEN=your_token_here
 ```
 
-See [ESP32_SETUP.md](./ESP32_SETUP.md) for detailed instructions.
+Commands:
+- `/start` — register your Telegram account
+- `/otp` — receive the current locker OTP
+- `/status` — check locker state
+
+Without a token the bot is silently disabled — everything else still works.
 
 ---
 
 ## 🧪 Testing
 
-### Run API Tests
 ```bash
 cd findora-backend
 node test-all-endpoints.js
 ```
 
-**Results**: 19/19 tests passing ✅
-
-Tests cover:
-- Authentication & authorization
-- Report CRUD operations
-- AI matching engine
-- Fraud detection
-- Rewards system
-- Chat messaging
-- IoT/locker integration
-- Admin operations
-- Analytics endpoints
-
-### Run Frontend Build
-```bash
-cd findora-frontend
-npm run build
-```
+**19/19 tests pass** — covers auth, RBAC, reports, matches, lockers, OTP, rewards, admin, analytics, fraud detection.
 
 ---
 
-## 📊 API Documentation
+## 🔒 Security
 
-### Base URL
-```
-http://localhost:3001/api
-```
-
-### Authentication
-All protected endpoints require Bearer token:
-```bash
-Authorization: Bearer demo-token-demo-user-1
-```
-
-### Key Endpoints
-
-#### Reports
-- `POST /reports` - Create lost/found report
-- `GET /reports` - Get all reports (with pagination)
-- `GET /reports/:id` - Get report details
-- `PUT /reports/:id` - Update report
-- `DELETE /reports/:id` - Delete report
-
-#### Matches
-- `GET /matches` - Get matches (filter by status)
-- `POST /matches/:id/accept` - Accept match
-- `POST /matches/:id/reject` - Reject match
-
-#### Rewards
-- `GET /rewards/profile` - Get user rewards profile
-- `GET /rewards/leaderboard` - Get global leaderboard
-- `GET /rewards/history` - Get points history
-
-#### Admin (requires admin role)
-- `GET /admin/dashboard` - Comprehensive dashboard data
-- `GET /admin/reports` - All reports with admin controls
-- `GET /admin/fraud/stats` - Fraud detection statistics
-- `GET /admin/analytics/*` - Various analytics endpoints
-
-See full API documentation in [API.md](./API.md).
-
----
-
-## 🎯 Use Cases
-
-### For Universities & Colleges
-- Centralized lost & found management
-- Student engagement through gamification
-- Campus-wide smart locker network
-- Reduce administrative overhead
-
-### For Corporate Offices
-- Professional lost & found system
-- Security integration
-- Employee rewards program
-- Asset tracking
-
-### For Public Venues
-- Airports, malls, stadiums
-- High-volume item management
-- Multi-language support
-- Quick item retrieval
-
----
-
-## 🔒 Security Features
-
-- ✅ JWT-based authentication
-- ✅ Role-based access control (RBAC)
-- ✅ Rate limiting (500 req/15min)
-- ✅ Input validation on all endpoints
-- ✅ CORS protection
-- ✅ Helmet security headers
-- ✅ Automatic fraud detection
-- ✅ Audit logging for admin actions
-- ✅ OTP verification for locker access
-
----
-
-## 📈 Performance Metrics
-
-- **API Response Time**: < 50ms (demo mode)
-- **AI Matching Accuracy**: 91%
-- **Frontend Build**: ~400ms
-- **Bundle Size**: 846 KB (optimizable)
-- **Concurrent Users**: 500+ (rate-limited)
-
----
-
-## 🗂️ Project Structure
-
-```
-Smart-Lock-Found-Ecosystem/
-├── findora-backend/          # Node.js/Express API
-│   ├── src/
-│   │   ├── config/           # Configuration & demo store
-│   │   ├── middleware/       # Auth & validation
-│   │   ├── routes/           # API endpoints
-│   │   └── services/         # AI, fraud, rewards, analytics
-│   └── test-all-endpoints.js # Comprehensive test suite
-│
-├── findora-frontend/         # React application
-│   ├── src/
-│   │   ├── components/       # Reusable UI components
-│   │   ├── pages/            # Route pages
-│   │   ├── context/          # React context (Auth)
-│   │   └── lib/              # API client & utilities
-│   └── public/               # Static assets
-│
-└── esp32-locker/             # IoT firmware
-    ├── src/                  # C++ firmware code
-    └── platformio.ini        # PlatformIO config
-```
-
----
-
-## 🎨 UI/UX Features
-
-- 🌙 Dark mode optimized design
-- 📱 Fully responsive (mobile, tablet, desktop)
-- ♿ Accessibility compliant
-- 🎯 Intuitive navigation
-- 🔔 Real-time notifications
-- 📊 Interactive charts & analytics
-- ⚡ Fast page loads with Vite
+- JWT / demo-token authentication on all routes
+- Role-based access control: `user`, `institution_admin`, `police`, `super_admin`
+- Helmet security headers
+- CORS locked to localhost origins (configurable via `FRONTEND_URL`)
+- Global rate limiter: 500 req / 15 min
+- Per-session OTP rate limit: 5 attempts then 15-min lockout
+- Audit log on every sensitive action
 
 ---
 
 ## 🌍 Deployment
 
-### Backend (Node.js)
-Deploy to:
-- Heroku
-- AWS Elastic Beanstalk
-- Google Cloud Run
-- DigitalOcean App Platform
+### Backend
+Set in `.env`:
+```env
+NODE_ENV=production
+DEMO_MODE=false
+FIREBASE_PROJECT_ID=...
+FIREBASE_PRIVATE_KEY=...
+FIREBASE_CLIENT_EMAIL=...
+FRONTEND_URL=https://your-domain.com
+TELEGRAM_BOT_TOKEN=...
+```
+Deploy to Railway, Render, Heroku, or any Node-compatible host.
 
-### Frontend (React)
-Deploy to:
-- Vercel (recommended)
-- Netlify
-- AWS Amplify
-- GitHub Pages
-
-### Database
-- Firebase Firestore (recommended)
-- MongoDB
-- PostgreSQL with custom adapter
-
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct and development process.
+### Frontend
+```bash
+cd findora-frontend
+npm run build       # outputs to dist/
+```
+Deploy `dist/` to Vercel, Netlify, or any static host. Set `VITE_API_URL` to your backend URL.
 
 ---
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT — see [LICENSE](./LICENSE).
 
 ---
 
-## 👥 Authors
+## 👤 Authors
 
-**Srinidhi Vishal Chejarla**
-- GitHub: [@SRINIDHI-VISHAL1493](https://github.com/SRINIDHI-VISHAL1493)
-- Email: srinidhivishalchejarla@example.com
-
----
-
-## 🙏 Acknowledgments
-
-- Firebase for authentication & database
-- HiveMQ for public MQTT broker
-- Natural NLP libraries for text processing
-- OpenAI for inspiration on AI matching algorithms
-- The open-source community
-
----
-
-## 📞 Support
-
-- 📧 Email: support@findora.example.com
-- 🐛 Issues: [GitHub Issues](https://github.com/SRINIDHI-VISHAL1493/Smart-Lock-Found-Ecosystem/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/SRINIDHI-VISHAL1493/Smart-Lock-Found-Ecosystem/discussions)
-
----
-
-## 🗺️ Roadmap
-
-### Version 1.1 (Q1 2027)
-- [ ] Mobile app (React Native)
-- [ ] Multi-language support
-- [ ] Email notifications
-- [ ] SMS OTP verification
-
-### Version 1.2 (Q2 2027)
-- [ ] Image recognition for items
-- [ ] QR code generation for reports
-- [ ] Integration with campus ID systems
-- [ ] Advanced analytics dashboard
-
-### Version 2.0 (Q3 2027)
-- [ ] Blockchain for item provenance
-- [ ] NFT-based digital receipts
-- [ ] AI chatbot support
-- [ ] Video verification system
-
----
-
-## ⭐ Star History
-
-If you find this project helpful, please consider giving it a star! ⭐
+- **Sai Charan** — [@SAICHARAN1189](https://github.com/SAICHARAN1189)
+- **Srinidhi Vishal** — [@SRINIDHI-VISHAL1493](https://github.com/SRINIDHI-VISHAL1493)
 
 ---
 
 <div align="center">
 
-**Built with ❤️ for making lost items findable**
+**Built with ❤️ — making lost items findable again**
 
-[Report Bug](https://github.com/SRINIDHI-VISHAL1493/Smart-Lock-Found-Ecosystem/issues) · [Request Feature](https://github.com/SRINIDHI-VISHAL1493/Smart-Lock-Found-Ecosystem/issues) · [Documentation](https://github.com/SRINIDHI-VISHAL1493/Smart-Lock-Found-Ecosystem/wiki)
+[Report a Bug](https://github.com/SAICHARAN1189/FINDORA/issues) · [Request a Feature](https://github.com/SAICHARAN1189/FINDORA/issues)
 
 </div>
